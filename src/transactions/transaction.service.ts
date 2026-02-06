@@ -1,4 +1,4 @@
-﻿import { Injectable, NotFoundException } from '@nestjs/common';
+﻿import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TransactionType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
@@ -16,7 +16,7 @@ export class TransactionService {
         type: dto.type,
         title: dto.title,
         amountCents: dto.amountCents,
-        occurredAt: new Date(dto.occurredAt),
+        occurredAt: this.parseDate(dto.occurredAt),
       },
     });
   }
@@ -136,5 +136,13 @@ export class TransactionService {
     if (!existing) {
       throw new NotFoundException('Transaction not found');
     }
+  }
+
+  private parseDate(date: string): Date {
+    const parsed = new Date(date);
+    if (isNaN(parsed.getTime())) {
+      throw new BadRequestException('Invalid date format');
+    }
+    return parsed;
   }
 }
